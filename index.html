@@ -704,7 +704,7 @@ $('list').addEventListener('click', async (e) => {
     const allDoneNow = tasksCache.length > 0 && tasksCache.every(t => logsCache[t.id]?.status === 2);
     showCelebrate(allDoneNow);
   } else if (delBtn) {
-    const id = +delBtn.dataset.id;
+    const id = +delBtn.dataset.del;
     if (confirm('이 일과를 삭제할까요?')) {
       await sb.from('tasks').delete().eq('id', id);
       await loadAndRender();
