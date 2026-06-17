@@ -270,6 +270,32 @@
   .motivate .stamps .labels span.today { color: var(--accent-ink); font-weight: 700; }
   .celebrate .pop.big svg { width: 190px; height: 200px; }
   .celebrate .pop.big .word { font-size: 21px; }
+
+  /* ===== 담당자 배지 (엄마 관리 화면) ===== */
+  .badge.owner { background: var(--accent-bg); color: var(--accent-ink); }
+  .badge.owner.mom { background: #ece3f7; color: #6b4fa0; }
+
+  /* ===== 대시보드로 가기 버튼 (관리 화면) ===== */
+  .topbar .back { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--line2); background: var(--card); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .topbar .back svg { width: 17px; height: 17px; color: var(--ink2); }
+
+  /* ===== 엄마 대시보드 ===== */
+  #dash { display: none; padding-top: 14px; }
+  .dash-hero { display: flex; align-items: center; gap: 18px; margin: 6px 0 20px; }
+  .dash-hero .ring { width: 104px; height: 104px; flex-shrink: 0; }
+  #dashRing { transition: stroke-dashoffset .5s ease; }
+  .dash-hero .big { font-size: 22px; font-weight: 700; color: var(--accent-ink); }
+  .dash-hero .cap { font-size: 13px; color: var(--ink2); margin-top: 3px; }
+  .dash-block-title { font-size: 13px; color: var(--ink2); margin: 16px 0 8px; }
+  .dash-list { display: flex; flex-direction: column; }
+  .dash-row { display: flex; align-items: center; gap: 10px; padding: 11px 2px; border-top: 1px solid var(--line); }
+  .dash-row:first-child { border-top: none; }
+  .dash-row .di { width: 22px; height: 22px; flex-shrink: 0; }
+  .dash-row .di svg { width: 22px; height: 22px; display: block; }
+  .dash-row .dn { flex: 1; font-size: 14px; min-width: 0; }
+  .dash-row .t-done { font-size: 12px; color: var(--done); font-weight: 600; white-space: nowrap; }
+  .dash-row .t-run { font-size: 12px; color: var(--warn); font-weight: 600; white-space: nowrap; }
+  .dash-row .t-wait { font-size: 12px; color: var(--ink3); white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -328,17 +354,65 @@
     </div>
   </div>
 
+  <!-- 엄마 대시보드 화면 -->
+  <div id="dash">
+    <div class="topbar">
+      <div class="date" id="dashDate"></div>
+      <div class="presence"><span class="me">엄마</span></div>
+    </div>
+    <h2 class="title">윤서 오늘 현황</h2>
+
+    <div class="dash-hero">
+      <svg class="ring" viewBox="0 0 120 120" aria-hidden="true">
+        <circle cx="60" cy="60" r="50" fill="none" stroke="var(--line)" stroke-width="12"/>
+        <circle id="dashRing" cx="60" cy="60" r="50" fill="none" stroke="var(--accent)" stroke-width="12" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="314" transform="rotate(-90 60 60)"/>
+        <text id="dashRingTxt" x="60" y="58" text-anchor="middle" font-size="26" font-weight="700" fill="var(--ink)">–</text>
+        <text x="60" y="78" text-anchor="middle" font-size="13" fill="var(--ink2)">완료</text>
+      </svg>
+      <div>
+        <div class="big" id="dashPct">– 진행</div>
+        <div class="cap" id="dashCaption">불러오는 중...</div>
+      </div>
+    </div>
+
+    <div class="stat-cards">
+      <div class="c"><div class="v" id="dashStreak">–</div><div class="l">연속 달성</div></div>
+      <div class="c"><div class="v" id="dashWeekly">–</div><div class="l">주간 달성</div></div>
+      <div class="c"><div class="v" id="dashAvgEnd">–</div><div class="l">평균 완료</div></div>
+    </div>
+
+    <div class="dash-block-title">요일별 달성</div>
+    <div class="bars" id="dashBars"></div>
+
+    <div class="dash-block-title">오늘 일과</div>
+    <div class="dash-list" id="dashToday"></div>
+
+    <div class="tools" style="margin-top:20px;">
+      <button id="dashToApp">＋ 일과 관리</button>
+      <button id="dashToStats" class="stats-btn">통계·기록</button>
+    </div>
+
+    <div class="footer">
+      <button id="dashLogout">로그아웃</button>
+    </div>
+  </div>
+
   <!-- 메인 화면 -->
   <div id="app">
     <div class="topbar">
-      <div class="date" id="todayLabel"></div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button class="back" id="appBack" style="display:none;" aria-label="대시보드로">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <div class="date" id="todayLabel"></div>
+      </div>
       <div class="presence">
         <span class="dot" id="presenceDot"></span>
         <span class="who-txt" id="presenceTxt">나만 접속 중</span>
         <span class="me" id="meAvatar"></span>
       </div>
     </div>
-    <h2 class="title">오늘의 일과</h2>
+    <h2 class="title" id="appTitle">오늘의 일과</h2>
 
     <div class="days" id="days"></div>
 
@@ -581,7 +655,7 @@ $('logoutBtn').addEventListener('click', async () => { await sb.auth.signOut(); 
 /* ========== 세션 전환 ========== */
 sb.auth.onAuthStateChange((_event, session) => {
   if (session) showApp(session);
-  else { $('auth').style.display = 'flex'; $('app').style.display = 'none'; }
+  else { $('auth').style.display = 'flex'; $('app').style.display = 'none'; $('dash').style.display = 'none'; $('stats').style.display = 'none'; }
 });
 
 let currentUser = null;
@@ -589,12 +663,25 @@ async function showApp(session) {
   currentUser = session.user;
   myRole = currentUser.user_metadata?.role || 'daughter';
   $('auth').style.display = 'none';
-  $('app').style.display = 'block';
   $('meAvatar').textContent = myRole === 'mom' ? '엄마' : '딸';
   $('openStats').style.display = myRole === 'mom' ? 'block' : 'none';
+  $('appBack').style.display = myRole === 'mom' ? 'flex' : 'none';
+  $('appTitle').textContent = myRole === 'mom' ? '일과 관리' : '오늘의 일과';
   renderDays();
   renderTodayLabel();
-  await loadAndRender();
+  if (myRole === 'mom') {
+    // 엄마: 시각적 대시보드를 첫 화면으로
+    $('app').style.display = 'none';
+    $('dash').style.display = 'block';
+    $('dashDate').textContent = $('todayLabel').textContent;
+    await loadDashboard();
+    await loadAndRender();      // 관리 화면 미리 준비 (숨김 상태)
+  } else {
+    // 딸: 단순한 '내 일과' 화면
+    $('dash').style.display = 'none';
+    $('app').style.display = 'block';
+    await loadAndRender();
+  }
   subscribeRealtime();
   setupPresence();
 }
@@ -623,10 +710,10 @@ let logsCache = {};
 
 async function loadAndRender() {
   const dateStr = dateOfSelectedDay();
-  const { data: tasks, error: te } = await sb.from('tasks')
-    .select('*').eq('day_of_week', selectedDay)
-    .or(`task_date.is.null,task_date.eq.${dateStr}`)
-    .order('sort_order').order('created_at');
+  let q = sb.from('tasks').select('*').eq('day_of_week', selectedDay)
+    .or(`task_date.is.null,task_date.eq.${dateStr}`);
+  if (myRole === 'daughter') q = q.eq('owner', 'daughter');   // 딸은 자기 일과만
+  const { data: tasks, error: te } = await q.order('sort_order').order('created_at');
   if (te) { $('list').innerHTML = `<div class="empty">불러오기 오류: ${te.message}</div>`; return; }
   tasksCache = tasks || [];
 
@@ -672,14 +759,15 @@ function renderList() {
       actHtml = isToday ? `<button class="act start" data-act="start" data-id="${task.id}">시작</button>` : '';
     }
 
-    const ownerBadge = task.owner === 'daughter' && myRole === 'mom' ? '' :
-      (task.created_by === currentUser.id && task.is_adhoc ? '' : '');
+    const ownerBadge = (myRole === 'mom')
+      ? `<span class="badge owner ${task.owner === 'mom' ? 'mom' : ''}">${task.owner === 'mom' ? '엄마' : '딸'}</span>`
+      : '';
     const adhocBadge = task.task_date ? '<span class="badge">오늘만</span>' : '';
 
     el.innerHTML = `
       <div class="ic">${icon}</div>
       <div class="body">
-        <div class="name">${escapeHtml(task.title)} ${adhocBadge}</div>
+        <div class="name">${escapeHtml(task.title)} ${ownerBadge}${adhocBadge}</div>
         ${sub ? `<div class="sub">${sub}</div>` : ''}
       </div>
       ${actHtml}
@@ -865,7 +953,7 @@ function showCelebrate(allDone) {
 /* ========== 동기부여 (연속 배지·이번 주 도장) ========== */
 async function loadMotivation() {
   const box = $('motivate');
-  if (!currentUser) { box.style.display = 'none'; return; }
+  if (!currentUser || myRole === 'mom') { box.style.display = 'none'; return; }
   box.style.display = 'flex';
 
   const { data: allTasks } = await sb.from('tasks').select('id, day_of_week').is('task_date', null);
@@ -944,8 +1032,125 @@ $('periodTabs').addEventListener('click', (e) => {
 });
 $('statsBack').addEventListener('click', () => {
   $('stats').style.display = 'none';
-  $('app').style.display = 'block';
+  if (myRole === 'mom') { $('dash').style.display = 'block'; loadDashboard(); }
+  else { $('app').style.display = 'block'; }
 });
+
+/* ========== 대시보드 화면 전환 (엄마) ========== */
+$('dashToApp').addEventListener('click', () => { $('dash').style.display = 'none'; $('app').style.display = 'block'; });
+$('dashToStats').addEventListener('click', () => { $('dash').style.display = 'none'; $('stats').style.display = 'block'; loadStats(); });
+$('appBack').addEventListener('click', () => { $('app').style.display = 'none'; $('dash').style.display = 'block'; loadDashboard(); });
+$('dashLogout').addEventListener('click', async () => { await sb.auth.signOut(); location.reload(); });
+
+/* ========== 엄마 대시보드 데이터 ========== */
+async function loadDashboard() {
+  const today = todayDateStr();
+  const { data: dTasks } = await sb.from('tasks')
+    .select('id, title, day_of_week, task_date, sort_order, created_at')
+    .eq('owner', 'daughter');
+  const all = dTasks || [];
+  const daughterIds = new Set(all.map(t => t.id));
+  const byDow = [[],[],[],[],[],[],[]];
+  all.forEach(t => { if (t.task_date == null && byDow[t.day_of_week]) byDow[t.day_of_week].push(t.id); });
+  const todayList = all
+    .filter(t => t.day_of_week === todayIdx && (t.task_date == null || t.task_date === today))
+    .sort((a, b) => (a.sort_order - b.sort_order) || (new Date(a.created_at || 0) - new Date(b.created_at || 0)));
+
+  const since = dateNDaysAgo(30);
+  const { data: rawLogs } = await sb.from('task_logs').select('*').gte('log_date', since);
+  const logs = (rawLogs || []).filter(l => daughterIds.has(l.task_id));
+  const logsByDate = {};
+  logs.forEach(l => { (logsByDate[l.log_date] = logsByDate[l.log_date] || []).push(l); });
+  const doneOn = (ds) => new Set((logsByDate[ds] || []).filter(l => l.status === 2).map(l => l.task_id));
+
+  // 오늘 도넛
+  const todayDone = doneOn(today);
+  const totalToday = todayList.length;
+  const doneCount = todayList.filter(t => todayDone.has(t.id)).length;
+  const pct = totalToday ? Math.round(doneCount / totalToday * 100) : 0;
+  $('dashRing').style.strokeDashoffset = String(Math.round(314 * (1 - pct / 100)));
+  $('dashRingTxt').textContent = `${doneCount}/${totalToday}`;
+  $('dashPct').textContent = `${pct}% 진행`;
+  $('dashCaption').textContent = !totalToday ? '오늘 일과가 없어요'
+    : pct === 100 ? '오늘 다 했어요!' : pct >= 50 ? '잘 따라오고 있어요' : '아직 시작이에요';
+
+  // 연속 달성
+  let streak = 0;
+  for (let back = 0; back < 60; back++) {
+    const d = new Date(); d.setDate(d.getDate() - back);
+    const dow = (d.getDay() + 6) % 7;
+    const planned = byDow[dow] || [];
+    if (!planned.length) continue;
+    const done = doneOn(dateNDaysAgo(back));
+    const allDone = planned.every(id => done.has(id));
+    if (back === 0 && !allDone) continue;
+    if (allDone) streak++; else break;
+  }
+  $('dashStreak').textContent = streak + '일';
+
+  // 주간 달성률 (최근 7일)
+  let wp = 0, wd = 0;
+  for (let back = 0; back < 7; back++) {
+    const d = new Date(); d.setDate(d.getDate() - back);
+    const dow = (d.getDay() + 6) % 7;
+    const planned = byDow[dow] || [];
+    if (!planned.length) continue;
+    const done = doneOn(dateNDaysAgo(back));
+    planned.forEach(id => { wp++; if (done.has(id)) wd++; });
+  }
+  $('dashWeekly').textContent = wp ? Math.round(wd / wp * 100) + '%' : '–';
+
+  // 평균 완료 시각
+  let mins = 0, n = 0;
+  logs.forEach(l => {
+    if (l.status === 2 && l.ended_at) {
+      const e = new Date(l.ended_at);
+      mins += e.getHours() * 60 + e.getMinutes(); n++;
+    }
+  });
+  if (n) {
+    const avg = Math.round(mins / n);
+    $('dashAvgEnd').textContent = `${String(Math.floor(avg / 60)).padStart(2,'0')}:${String(avg % 60).padStart(2,'0')}`;
+  } else { $('dashAvgEnd').textContent = '–'; }
+
+  // 요일별 막대 (이번 주)
+  const DOWK = ['월','화','수','목','금','토','일'];
+  const barsEl = $('dashBars'); barsEl.innerHTML = '';
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(); d.setDate(d.getDate() + (i - todayIdx));
+    const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const planned = byDow[i] || [];
+    const done = doneOn(ds);
+    const p = planned.length ? Math.round(planned.filter(id => done.has(id)).length / planned.length * 100) : 0;
+    const cls = planned.length === 0 ? 'empty' : (p < 60 ? 'low' : '');
+    const col = document.createElement('div'); col.className = 'col';
+    col.innerHTML = `<div class="track"><div class="fill ${cls}" style="height:${Math.max(p, 3)}%"></div></div><div class="lbl ${i === todayIdx ? 'today' : ''}">${DOWK[i]}</div>`;
+    barsEl.appendChild(col);
+  }
+
+  // 오늘 일과 요약
+  const tEl = $('dashToday'); tEl.innerHTML = '';
+  if (!todayList.length) {
+    tEl.innerHTML = '<div class="empty">오늘 윤서 일과가 없어요.</div>';
+  } else {
+    const logById = {}; (logsByDate[today] || []).forEach(l => { logById[l.task_id] = l; });
+    tEl.innerHTML = todayList.map(t => {
+      const log = logById[t.id]; const st = log ? log.status : 0;
+      let ic, info;
+      if (st === 2) {
+        ic = '<svg viewBox="0 0 24 24" fill="none" stroke="var(--done)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        info = `<span class="t-done">${fmtTime(log.started_at)}~${fmtTime(log.ended_at)}</span>`;
+      } else if (st === 1) {
+        ic = '<svg viewBox="0 0 24 24" fill="var(--warn)" stroke="none"><circle cx="12" cy="12" r="10" opacity=".15"/><path d="M10 8l6 4-6 4z"/></svg>';
+        info = '<span class="t-run">진행 중</span>';
+      } else {
+        ic = '<svg viewBox="0 0 24 24" fill="none" stroke="var(--ink3)" stroke-width="1.6"><circle cx="12" cy="12" r="9.2"/></svg>';
+        info = '<span class="t-wait">대기</span>';
+      }
+      return `<div class="dash-row"><span class="di">${ic}</span><span class="dn">${escapeHtml(t.title)}</span>${info}</div>`;
+    }).join('');
+  }
+}
 
 function dateNDaysAgo(n) {
   const d = new Date(); d.setDate(d.getDate() - n);
@@ -1103,10 +1308,14 @@ async function loadStats() {
 }
 
 /* ========== 실시간 동기화 ========== */
+function refreshActive() {
+  loadAndRender();
+  if (myRole === 'mom') loadDashboard();
+}
 function subscribeRealtime() {
   sb.channel('routine-changes')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, () => loadAndRender())
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'task_logs' }, () => loadAndRender())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, () => refreshActive())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'task_logs' }, () => refreshActive())
     .subscribe();
 }
 
