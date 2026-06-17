@@ -1,0 +1,6 @@
+# Claude Code 작업 설정 (배포와 무관)
+.claude/
+
+# OS 부산물
+Thumbs.db
+.DS_Store
